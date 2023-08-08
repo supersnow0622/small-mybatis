@@ -9,6 +9,7 @@ import com.wlx.middleware.mybatis.mapping.Environment;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.mapping.SqlCommandType;
 import com.wlx.middleware.mybatis.session.Configuration;
+import com.wlx.middleware.mybatis.transaction.TransactionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -49,25 +50,35 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
 
     private void environmentsElement(Element environments) throws Exception {
+        String environment = environments.attributeValue("default");
+
         List<Element> environmentList = environments.elements("environment");
         for (Element environmentElement : environmentList) {
             String id = environmentElement.attributeValue("id");
-            Element dataSourceElement = environmentElement.element("dataSource");
+            if (environment.equals(id)) {
+                // 事务管理器
+                TransactionFactory transactionFactory = (TransactionFactory)
+                        typeAliasRegistry.resolveAlias(environmentElement.element("transactionManager").attributeValue("type")).newInstance();
 
-            String type = dataSourceElement.attributeValue("type");
-            DataSourceFactory dataSourceFactory = (DataSourceFactory) typeAliasRegistry.resolveAlias(type).newInstance();
-            Properties props = new Properties();
-            List<Element> properties = dataSourceElement.elements("property");
-            for (Element property : properties) {
-                props.setProperty(property.attributeValue("name"), property.attributeValue("value"));
+                // 数据源
+                Element dataSourceElement = environmentElement.element("dataSource");
+
+                String type = dataSourceElement.attributeValue("type");
+                DataSourceFactory dataSourceFactory = (DataSourceFactory) typeAliasRegistry.resolveAlias(type).newInstance();
+                Properties props = new Properties();
+                List<Element> properties = dataSourceElement.elements("property");
+                for (Element property : properties) {
+                    props.setProperty(property.attributeValue("name"), property.attributeValue("value"));
+                }
+                dataSourceFactory.setProperties(props);
+                DataSource dataSource = dataSourceFactory.getDataSource();
+
+                // 构建环境
+                Environment.Builder environmentBuilder = new Environment.Builder(id)
+                        .transactionFactory(transactionFactory).dataSource(dataSource);
+
+                configuration.setEnvironment(environmentBuilder.build());
             }
-            dataSourceFactory.setProperties(props);
-            DataSource dataSource = dataSourceFactory.getDataSource();
-
-            Environment.Builder environmentBuilder = new Environment.Builder(id).dataSource(dataSource);
-
-            Environment environment = environmentBuilder.build();
-            configuration.setEnvironment(environment);
         }
     }
 
@@ -102,7 +113,7 @@ public class XMLConfigBuilder extends BaseBuilder {
                 String nodeName = node.getName();
                 SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase());
                 BoundSql boundSql = new BoundSql(parameterType, parameter, resultType, sql);
-                MappedStatement mappedStatement = new MappedStatement.Builder(msId, boundSql, sqlCommandType).build();
+                MappedStatement mappedStatement = new MappedStatement.Builder(configuration, msId, boundSql, sqlCommandType).build();
 
                 configuration.addMappedStatement(mappedStatement);
             }

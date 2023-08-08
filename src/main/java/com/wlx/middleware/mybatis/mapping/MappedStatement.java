@@ -1,17 +1,25 @@
 package com.wlx.middleware.mybatis.mapping;
 
+import com.wlx.middleware.mybatis.session.Configuration;
+
 public class MappedStatement {
+
+    private Configuration configuration;
 
     private String id;
     private SqlCommandType sqlCommandType;
 
     private BoundSql boundSql;
 
+    public MappedStatement() {
+    }
+
     public static class Builder {
 
         private MappedStatement mappedStatement = new MappedStatement();
 
-        public Builder(String id, BoundSql boundSql, SqlCommandType sqlCommandType) {
+        public Builder(Configuration configuration, String id, BoundSql boundSql, SqlCommandType sqlCommandType) {
+            mappedStatement.configuration = configuration;
             mappedStatement.id = id;
             mappedStatement.boundSql = boundSql;
             mappedStatement.sqlCommandType = sqlCommandType;
@@ -22,27 +30,20 @@ public class MappedStatement {
         }
     }
 
-    public String getId() {
-        return id;
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getId() {
+        return id;
     }
 
     public BoundSql getBoundSql() {
         return boundSql;
     }
 
-    public void setBoundSql(BoundSql boundSql) {
-        this.boundSql = boundSql;
-    }
-
     public SqlCommandType getSqlCommandType() {
         return sqlCommandType;
     }
 
-    public void setSqlCommandType(SqlCommandType sqlCommandType) {
-        this.sqlCommandType = sqlCommandType;
-    }
 }
