@@ -27,7 +27,8 @@ public class DefaultSqlSession implements SqlSession {
     public <T> T selectOne(String statement, Object parameter) {
         try {
             MappedStatement mappedStatement = configuration.getMappedStatement(statement);
-            List<T> list = executor.query(mappedStatement, parameter, Executor.NO_RESULT_HANDLER, mappedStatement.getBoundSql());
+            List<T> list = executor.query(mappedStatement, parameter, Executor.NO_RESULT_HANDLER,
+                    mappedStatement.getSqlSource().getBoundSql(parameter));
             return list.get(0);
         } catch (Exception e) {
             e.printStackTrace();

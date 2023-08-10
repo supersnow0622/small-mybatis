@@ -5,11 +5,10 @@ import com.wlx.middleware.mybatis.session.Configuration;
 public class MappedStatement {
 
     private Configuration configuration;
-
     private String id;
     private SqlCommandType sqlCommandType;
-
-    private BoundSql boundSql;
+    private SqlSource sqlSource;
+    Class<?> resultType;
 
     public MappedStatement() {
     }
@@ -18,11 +17,12 @@ public class MappedStatement {
 
         private MappedStatement mappedStatement = new MappedStatement();
 
-        public Builder(Configuration configuration, String id, BoundSql boundSql, SqlCommandType sqlCommandType) {
+        public Builder(Configuration configuration, String id, SqlCommandType sqlCommandType, SqlSource sqlSource, Class<?> resultType) {
             mappedStatement.configuration = configuration;
             mappedStatement.id = id;
-            mappedStatement.boundSql = boundSql;
             mappedStatement.sqlCommandType = sqlCommandType;
+            mappedStatement.sqlSource = sqlSource;
+            mappedStatement.resultType = resultType;
         }
 
         public MappedStatement build() {
@@ -38,12 +38,15 @@ public class MappedStatement {
         return id;
     }
 
-    public BoundSql getBoundSql() {
-        return boundSql;
-    }
-
     public SqlCommandType getSqlCommandType() {
         return sqlCommandType;
     }
 
+    public SqlSource getSqlSource() {
+        return sqlSource;
+    }
+
+    public Class<?> getResultType() {
+        return resultType;
+    }
 }

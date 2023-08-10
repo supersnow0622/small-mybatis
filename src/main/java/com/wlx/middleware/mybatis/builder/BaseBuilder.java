@@ -21,4 +21,8 @@ public abstract class BaseBuilder {
     public TypeAliasRegistry getTypeAliasRegistry() {
         return typeAliasRegistry;
     }
+
+    public Class<?> resolveAlias(String alias) {
+        return typeAliasRegistry.resolveAlias(alias);
+    }
 }

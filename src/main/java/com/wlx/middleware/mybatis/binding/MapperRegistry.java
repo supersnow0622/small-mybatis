@@ -17,7 +17,7 @@ public class MapperRegistry {
     public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
         MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
         if (mapperProxyFactory == null) {
-            throw new RuntimeException("Type" + type + "is not known to the MapperRegistry");
+            throw new RuntimeException("Type" + type + " is not known to the MapperRegistry");
         }
         return (T) mapperProxyFactory.newInstance(sqlSession);
     }
