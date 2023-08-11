@@ -4,8 +4,11 @@ import com.wlx.middleware.mybatis.mapping.ParameterMapping;
 import com.wlx.middleware.mybatis.mapping.SqlSource;
 import com.wlx.middleware.mybatis.parsing.GenericTokenParser;
 import com.wlx.middleware.mybatis.parsing.TokenHandler;
+import com.wlx.middleware.mybatis.reflection.MetaClass;
 import com.wlx.middleware.mybatis.reflection.MetaObject;
 import com.wlx.middleware.mybatis.session.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +18,8 @@ import java.util.Map;
  * SQL源码构建器
  */
 public class SqlSourceBuilder extends BaseBuilder {
+    private static Logger logger = LoggerFactory.getLogger(SqlSourceBuilder.class);
+
     public SqlSourceBuilder(Configuration configuration) {
         super(configuration);
     }
@@ -52,12 +57,30 @@ public class SqlSourceBuilder extends BaseBuilder {
         @Override
         public String handleToken(String content) {
             // 将参数解析出来放在map中
+            parameterMappings.add(buildParameterMapping(content));
+            return "?";
+        }
+
+        private ParameterMapping buildParameterMapping(String content) {
             Map<String, String> propertiesMap = new ParameterExpression(content);
             String property = propertiesMap.get("property");
-            ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, parameterType);
-            ParameterMapping parameterMapping = builder.build();
-            parameterMappings.add(parameterMapping);
-            return "?";
+            Class<?> propertyType;
+            if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
+                propertyType = parameterType;
+            } else if (property != null) {
+                MetaClass metaClass = MetaClass.forClass(parameterType);
+                if (metaClass.hasGetter(property)) {
+                    propertyType = metaClass.getGetterType(property);
+                } else {
+                    propertyType = Object.class;
+                }
+            } else {
+                propertyType = Object.class;
+            }
+
+            logger.info("构建参数映射 property：{} propertyType：{}", property, propertyType);
+            ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
+            return builder.build();
         }
     }
 }

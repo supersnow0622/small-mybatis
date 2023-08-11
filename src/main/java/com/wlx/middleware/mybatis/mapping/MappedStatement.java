@@ -1,5 +1,8 @@
 package com.wlx.middleware.mybatis.mapping;
 
+import cn.hutool.json.XML;
+import com.wlx.middleware.mybatis.scripting.LanguageDriver;
+import com.wlx.middleware.mybatis.scripting.xmltags.XMLLanguageDriver;
 import com.wlx.middleware.mybatis.session.Configuration;
 
 public class MappedStatement {
@@ -9,6 +12,8 @@ public class MappedStatement {
     private SqlCommandType sqlCommandType;
     private SqlSource sqlSource;
     Class<?> resultType;
+
+    private LanguageDriver languageDriver;
 
     public MappedStatement() {
     }
@@ -23,6 +28,7 @@ public class MappedStatement {
             mappedStatement.sqlCommandType = sqlCommandType;
             mappedStatement.sqlSource = sqlSource;
             mappedStatement.resultType = resultType;
+            mappedStatement.languageDriver = configuration.getDefaultScriptingLanguageInstance();
         }
 
         public MappedStatement build() {
@@ -48,5 +54,9 @@ public class MappedStatement {
 
     public Class<?> getResultType() {
         return resultType;
+    }
+
+    public LanguageDriver getLanguageDriver() {
+        return languageDriver;
     }
 }

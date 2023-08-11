@@ -1,7 +1,6 @@
 package com.wlx.middleware.mybatis.executor.statement;
 
 import com.wlx.middleware.mybatis.executor.Executor;
-import com.wlx.middleware.mybatis.executor.resultset.ResultSetHandler;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.session.Configuration;
@@ -34,7 +33,6 @@ public class PreparedStatementHandler extends BaseStatementHandler {
 
     @Override
     public void parameterize(Statement statement) throws SQLException {
-        PreparedStatement preparedStatement = (PreparedStatement) statement;
-        preparedStatement.setLong(1, Long.parseLong(((Object[]) parameterObject)[0].toString()));
+        parameterHandler.setParameters((PreparedStatement) statement);
     }
 }

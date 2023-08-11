@@ -1,6 +1,7 @@
 package com.wlx.middleware.mybatis.executor.statement;
 
 import com.wlx.middleware.mybatis.executor.Executor;
+import com.wlx.middleware.mybatis.executor.parameter.ParameterHandler;
 import com.wlx.middleware.mybatis.executor.resultset.ResultSetHandler;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
@@ -25,6 +26,8 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
     protected Object parameterObject;
 
+    protected final ParameterHandler parameterHandler;
+
     public BaseStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler,
                                 BoundSql boundSql, Executor executor, Configuration configuration, Object parameterObject) {
         this.mappedStatement = mappedStatement;
@@ -33,6 +36,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
         this.executor = executor;
         this.configuration = configuration;
         this.parameterObject = parameterObject;
+        this.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);
     }
 
     @Override
