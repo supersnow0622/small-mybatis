@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.session.Configuration;
 import com.wlx.middleware.mybatis.session.RowBounds;
 import com.wlx.middleware.mybatis.session.SqlSession;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class DefaultSqlSession implements SqlSession {
@@ -26,14 +27,53 @@ public class DefaultSqlSession implements SqlSession {
 
     @Override
     public <T> T selectOne(String statement, Object parameter) {
+        List<T> list = this.<T>selectList(statement, parameter);
+        if (list.size() == 1) {
+            return list.get(0);
+        } else if (list.size() > 1) {
+            throw new RuntimeException("Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public <E> List<E> selectList(String statement, Object parameter) {
         try {
             MappedStatement mappedStatement = configuration.getMappedStatement(statement);
-            List<T> list = executor.query(mappedStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
+            return executor.query(mappedStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
                     mappedStatement.getSqlSource().getBoundSql(parameter));
-            return list.get(0);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("Error querying database.  Cause: " + e);
+        }
+    }
+
+    @Override
+    public int insert(String statement, Object parameter) {
+        return update(statement, parameter);
+    }
+
+    @Override
+    public int update(String statement, Object parameter) {
+        MappedStatement mappedStatement = configuration.getMappedStatement(statement);
+        try {
+            return executor.update(mappedStatement, parameter);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Object delete(String statement, Object parameter) {
+        return update(statement, parameter);
+    }
+
+    @Override
+    public void commit() {
+        try {
+            executor.commit(true);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error committing transaction.  Cause: " + e);
         }
     }
 

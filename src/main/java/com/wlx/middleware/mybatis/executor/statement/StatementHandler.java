@@ -16,5 +16,7 @@ public interface StatementHandler {
 
     <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException;
 
+    int update(Statement statement) throws SQLException;
+
     void parameterize(Statement statement) throws SQLException;
 }

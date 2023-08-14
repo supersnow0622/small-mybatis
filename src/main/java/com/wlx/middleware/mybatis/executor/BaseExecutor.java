@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 
@@ -32,12 +33,19 @@ public abstract class BaseExecutor implements Executor {
     }
 
     @Override
+    public int update(MappedStatement mappedStatement, Object parameter) throws SQLException {
+        return doUpdate(mappedStatement, parameter);
+    }
+
+    @Override
     public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
         if (closed) {
             throw new RuntimeException("Executor was closed.");
         }
         return doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     }
+
+    protected abstract int doUpdate(MappedStatement mappedStatement, Object parameter) throws SQLException;
 
     protected abstract <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql);
 
@@ -82,5 +90,15 @@ public abstract class BaseExecutor implements Executor {
             throw new RuntimeException("Executor was closed.");
         }
         return transaction;
+    }
+
+    protected void closeStatement(Statement statement) {
+        if (statement != null) {
+            try {
+                statement.close();
+            } catch (SQLException exception) {
+
+            }
+        }
     }
 }

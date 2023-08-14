@@ -33,6 +33,13 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     }
 
     @Override
+    public int update(Statement statement) throws SQLException {
+        PreparedStatement preparedStatement = (PreparedStatement) statement;
+        preparedStatement.execute();
+        return preparedStatement.getUpdateCount();
+    }
+
+    @Override
     public void parameterize(Statement statement) throws SQLException {
         parameterHandler.setParameters((PreparedStatement) statement);
     }

@@ -19,6 +19,8 @@ public class User {
     public User() {
     }
 
+
+
     public User(Long id) {
         this.id = id;
     }
@@ -26,6 +28,12 @@ public class User {
     public User(Long id, String userId) {
         this.id = id;
         this.userId = userId;
+    }
+
+    public User(Long id, String userId, String userName) {
+        this.id = id;
+        this.userId = userId;
+        this.userName = userName;
     }
 
     public Long getId() {

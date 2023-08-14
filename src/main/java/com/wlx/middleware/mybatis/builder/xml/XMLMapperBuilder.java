@@ -51,13 +51,18 @@ public class XMLMapperBuilder extends BaseBuilder {
         }
         builderAssistant.setCurrentNamespace(currentNamespace);
 
-        buildStatementFromContext(element.elements("select"));
+        buildStatementFromContext(element.elements("select"),
+                element.elements("insert"),
+                element.elements("update"),
+                element.elements("delete"));
     }
 
-    private void buildStatementFromContext(List<Element> list) {
-        for (Element element : list) {
-            final XMLStatementBuilder statementBuilder = new XMLStatementBuilder(configuration, builderAssistant, element);
-            statementBuilder.parseStatementNode();
+    private void buildStatementFromContext(List<Element>... lists) {
+        for (List<Element> list : lists) {
+            for (Element element : list) {
+                final XMLStatementBuilder statementBuilder = new XMLStatementBuilder(configuration, builderAssistant, element);
+                statementBuilder.parseStatementNode();
+            }
         }
     }
 }

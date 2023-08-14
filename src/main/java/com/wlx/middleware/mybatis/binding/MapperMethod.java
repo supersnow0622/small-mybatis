@@ -24,15 +24,29 @@ public class MapperMethod {
 
     public Object execute(SqlSession sqlSession, Object[] args) {
         SqlCommandType sqlCommandType = command.getSqlCommandType();
+        Object param = method.convertArgsToSqlCommandParam(args);
+        Object result = null;
         switch (sqlCommandType) {
-            case INSERT: break;
-            case DELETE: break;
-            case UPDATE: break;
+            case INSERT:
+                result = sqlSession.insert(command.getName(), param);
+                break;
+            case DELETE:
+                result = sqlSession.delete(command.getName(), param);
+                break;
+            case UPDATE:
+                result = sqlSession.update(command.getName(), param);
+                break;
             case SELECT:
-                Object param = method.convertArgsToSqlCommandParam(args);
-                return sqlSession.selectOne(command.getName(), param);
+                if (method.isResultMany()) {
+                    result = sqlSession.selectList(command.getName(), param);
+                } else {
+                    result = sqlSession.selectOne(command.getName(), param);
+                }
+                break;
+            default:
+                throw new RuntimeException("Unknown execution method for: " + command.getName());
         }
-        return null;
+        return result;
     }
 
     private static class SqlCommand {
@@ -62,9 +76,15 @@ public class MapperMethod {
      * 方法签名
      */
     public static class MethodSignature {
+
+        private final boolean resultMany;
+
+        private final Class<?> returnType;
         private final SortedMap<Integer, String> params;
 
         public MethodSignature(Configuration configuration, Method method) {
+            this.returnType = method.getReturnType();
+            this.resultMany = (configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray());
             this.params = Collections.unmodifiableSortedMap(getParams(method));
         }
 
@@ -109,6 +129,10 @@ public class MapperMethod {
                 params.put(i, paramName);
             }
             return params;
+        }
+
+        public boolean isResultMany() {
+            return resultMany;
         }
     }
 
