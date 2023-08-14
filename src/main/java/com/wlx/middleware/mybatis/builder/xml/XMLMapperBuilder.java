@@ -1,6 +1,7 @@
 package com.wlx.middleware.mybatis.builder.xml;
 
 import com.wlx.middleware.mybatis.builder.BaseBuilder;
+import com.wlx.middleware.mybatis.builder.MapperBuilderAssistant;
 import com.wlx.middleware.mybatis.io.Resources;
 import com.wlx.middleware.mybatis.session.Configuration;
 import org.dom4j.Document;
@@ -20,7 +21,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
     private String resource;
 
-    private String currentNamespace;
+    private MapperBuilderAssistant builderAssistant;
 
     public XMLMapperBuilder(Configuration configuration, InputStream inputStream, String resource) throws DocumentException {
         this(configuration, new SAXReader().read(inputStream), resource);
@@ -30,6 +31,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         super(configuration);
         this.element = document.getRootElement();
         this.resource = resource;
+        this.builderAssistant = new MapperBuilderAssistant(configuration, resource);
     }
 
 
@@ -37,23 +39,24 @@ public class XMLMapperBuilder extends BaseBuilder {
         if (!configuration.isResourceLoaded(resource)) {
             configurationElement(element);
             configuration.addLoadedResource(resource);
-            configuration.addMapper(Resources.classForName(currentNamespace));
+            configuration.addMapper(Resources.classForName(builderAssistant.getCurrentNamespace()));
         }
 
     }
 
     private void configurationElement(Element element) {
-        currentNamespace = element.attributeValue("namespace");
+        String currentNamespace = element.attributeValue("namespace");
         if (currentNamespace.equals("")) {
             throw new RuntimeException("Mapper's namespace cannot be empty");
         }
+        builderAssistant.setCurrentNamespace(currentNamespace);
 
         buildStatementFromContext(element.elements("select"));
     }
 
     private void buildStatementFromContext(List<Element> list) {
         for (Element element : list) {
-            final XMLStatementBuilder statementBuilder = new XMLStatementBuilder(configuration, element, currentNamespace);
+            final XMLStatementBuilder statementBuilder = new XMLStatementBuilder(configuration, builderAssistant, element);
             statementBuilder.parseStatementNode();
         }
     }

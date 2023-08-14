@@ -74,10 +74,10 @@ public class Configuration {
         return new SimpleExecutor(this, transaction);
     }
 
-    public StatementHandler newStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler,
+    public StatementHandler newStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler, RowBounds rowBounds,
                                                 BoundSql boundSql, Executor executor, Configuration configuration,
                                                 Object parameterObject) {
-        return new PreparedStatementHandler(mappedStatement, resultHandler, boundSql, executor, configuration, parameterObject);
+        return new PreparedStatementHandler(mappedStatement, resultHandler, rowBounds, boundSql, executor, configuration, parameterObject);
     }
 
     public ParameterHandler newParameterHandler(MappedStatement mappedStatement,Object parameterObject, BoundSql boundSql) {
@@ -85,8 +85,9 @@ public class Configuration {
         return parameterHandler;
     }
 
-    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, BoundSql boundSql) {
-        return new DefaultResultSetHandler(executor, mappedStatement, boundSql);
+    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds,
+                                                ResultHandler resultHandler, BoundSql boundSql) {
+        return new DefaultResultSetHandler(executor, mappedStatement, resultHandler, rowBounds, boundSql);
     }
 
     public MappedStatement getMappedStatement(String name) {
@@ -143,5 +144,9 @@ public class Configuration {
 
     public LanguageDriver getDefaultScriptingLanguageInstance() {
         return languageRegistry.getDefaultDriver();
+    }
+
+    public ObjectFactory getObjectFactory() {
+        return objectFactory;
     }
 }

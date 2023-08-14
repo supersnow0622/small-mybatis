@@ -3,6 +3,7 @@ package com.wlx.middleware.mybatis.session.defaults;
 import com.wlx.middleware.mybatis.executor.Executor;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.session.Configuration;
+import com.wlx.middleware.mybatis.session.RowBounds;
 import com.wlx.middleware.mybatis.session.SqlSession;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class DefaultSqlSession implements SqlSession {
     public <T> T selectOne(String statement, Object parameter) {
         try {
             MappedStatement mappedStatement = configuration.getMappedStatement(statement);
-            List<T> list = executor.query(mappedStatement, parameter, Executor.NO_RESULT_HANDLER,
+            List<T> list = executor.query(mappedStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
                     mappedStatement.getSqlSource().getBoundSql(parameter));
             return list.get(0);
         } catch (Exception e) {

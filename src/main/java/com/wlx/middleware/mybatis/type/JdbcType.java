@@ -26,4 +26,8 @@ public enum JdbcType {
             codeLookup.put(type.TYPE_CODE, type);
         }
     }
+
+    public static JdbcType forCode(int code)  {
+        return codeLookup.get(code);
+    }
 }

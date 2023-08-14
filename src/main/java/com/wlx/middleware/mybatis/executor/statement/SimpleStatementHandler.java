@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.session.Configuration;
 import com.wlx.middleware.mybatis.session.ResultHandler;
+import com.wlx.middleware.mybatis.session.RowBounds;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,8 +18,8 @@ import java.util.List;
  */
 public class SimpleStatementHandler extends BaseStatementHandler {
 
-    public SimpleStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler, BoundSql boundSql, Executor executor, Configuration configuration, Object parameterObject) {
-        super(mappedStatement, resultHandler, boundSql, executor, configuration, parameterObject);
+    public SimpleStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler, RowBounds rowBounds, BoundSql boundSql, Executor executor, Configuration configuration, Object parameterObject) {
+        super(mappedStatement, resultHandler, rowBounds, boundSql, executor, configuration, parameterObject);
     }
 
     @Override

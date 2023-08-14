@@ -1,9 +1,9 @@
 package com.wlx.middleware.mybatis.mapping;
 
-import cn.hutool.json.XML;
 import com.wlx.middleware.mybatis.scripting.LanguageDriver;
-import com.wlx.middleware.mybatis.scripting.xmltags.XMLLanguageDriver;
 import com.wlx.middleware.mybatis.session.Configuration;
+
+import java.util.List;
 
 public class MappedStatement {
 
@@ -14,6 +14,8 @@ public class MappedStatement {
     Class<?> resultType;
 
     private LanguageDriver languageDriver;
+
+    private List<ResultMap> resultMaps;
 
     public MappedStatement() {
     }
@@ -33,6 +35,15 @@ public class MappedStatement {
 
         public MappedStatement build() {
             return mappedStatement;
+        }
+
+        public String id() {
+            return mappedStatement.id;
+        }
+
+        public Builder resultMaps(List<ResultMap> resultMaps) {
+            mappedStatement.resultMaps = resultMaps;
+            return this;
         }
     }
 
@@ -58,5 +69,9 @@ public class MappedStatement {
 
     public LanguageDriver getLanguageDriver() {
         return languageDriver;
+    }
+
+    public List<ResultMap> getResultMaps() {
+        return resultMaps;
     }
 }

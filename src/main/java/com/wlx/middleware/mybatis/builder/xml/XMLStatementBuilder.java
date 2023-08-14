@@ -1,6 +1,7 @@
 package com.wlx.middleware.mybatis.builder.xml;
 
 import com.wlx.middleware.mybatis.builder.BaseBuilder;
+import com.wlx.middleware.mybatis.builder.MapperBuilderAssistant;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.mapping.SqlCommandType;
 import com.wlx.middleware.mybatis.mapping.SqlSource;
@@ -15,14 +16,13 @@ import org.dom4j.Element;
  */
 public class XMLStatementBuilder extends BaseBuilder {
 
+    private MapperBuilderAssistant builderAssistant;
     private Element element;
 
-    private String currentNamespace;
-
-    public XMLStatementBuilder(Configuration configuration, Element element, String currentNamespace) {
+    public XMLStatementBuilder(Configuration configuration, MapperBuilderAssistant builderAssistant, Element element) {
         super(configuration);
         this.element = element;
-        this.currentNamespace = currentNamespace;
+        this.builderAssistant = builderAssistant;
     }
 
     public void parseStatementNode() {
@@ -31,6 +31,7 @@ public class XMLStatementBuilder extends BaseBuilder {
         String parameterType = element.attributeValue("parameterType");
         Class<?> parameterTypeClass = resolveAlias(parameterType);
 
+        String resultMap = element.attributeValue("resultMap");
         String resultType = element.attributeValue("resultType");
         Class<?> resultTypeClass = resolveAlias(resultType);
 
@@ -42,8 +43,6 @@ public class XMLStatementBuilder extends BaseBuilder {
 
         SqlSource sqlSource = driver.createSqlSource(configuration, element, parameterTypeClass);
 
-        MappedStatement.Builder builder = new MappedStatement.Builder(configuration,
-                currentNamespace + "." + id, sqlCommandType, sqlSource, resultTypeClass);
-        configuration.addMappedStatement(builder.build());
+        builderAssistant.addMappedStatement(id, sqlSource, sqlCommandType, resultMap, resultTypeClass);
     }
 }
