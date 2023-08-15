@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.datasource.pooled.PooledDataSourceFactory;
 import com.wlx.middleware.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
 import com.wlx.middleware.mybatis.executor.Executor;
 import com.wlx.middleware.mybatis.executor.SimpleExecutor;
+import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
 import com.wlx.middleware.mybatis.executor.parameter.ParameterHandler;
 import com.wlx.middleware.mybatis.executor.resultset.DefaultResultSetHandler;
 import com.wlx.middleware.mybatis.executor.resultset.ResultSetHandler;
@@ -38,7 +39,9 @@ import java.util.Set;
  */
 public class Configuration {
 
-    private Environment environment;
+    protected Environment environment;
+
+    protected boolean useGeneratedKeys = false;
 
     // 映射的语句，key为namespace+id
     private Map<String, MappedStatement> mappedStatements = new HashMap<>();
@@ -63,6 +66,8 @@ public class Configuration {
 
     protected final Map<String, ResultMap> resultMaps = new HashMap<>();
 
+    protected final Map<String, KeyGenerator> keyGenerators = new HashMap<>();
+
     public Configuration() {
         typeAliasRegistry.registerAlias("DRUID", DruidDataSourceFactory.class);
         typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
@@ -82,7 +87,7 @@ public class Configuration {
         return new PreparedStatementHandler(mappedStatement, resultHandler, rowBounds, boundSql, executor, configuration, parameterObject);
     }
 
-    public ParameterHandler newParameterHandler(MappedStatement mappedStatement,Object parameterObject, BoundSql boundSql) {
+    public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
         ParameterHandler parameterHandler = mappedStatement.getLanguageDriver().createParameterHandler(mappedStatement, parameterObject, boundSql);
         return parameterHandler;
     }
@@ -160,4 +165,19 @@ public class Configuration {
         resultMaps.put(resultMap.getId(), resultMap);
     }
 
+    public void addKeyGenerator(String id, KeyGenerator keyGenerator) {
+        keyGenerators.put(id, keyGenerator);
+    }
+
+    public KeyGenerator getKeyGenerator(String id) {
+        return keyGenerators.get(id);
+    }
+
+    public boolean hasGenerator(String id) {
+        return keyGenerators.containsKey(id);
+    }
+
+    public boolean isUseGeneratedKeys() {
+        return useGeneratedKeys;
+    }
 }

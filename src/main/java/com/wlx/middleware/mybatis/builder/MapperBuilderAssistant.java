@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.builder;
 
+import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
 import com.wlx.middleware.mybatis.mapping.*;
 import com.wlx.middleware.mybatis.reflection.MetaClass;
 import com.wlx.middleware.mybatis.session.Configuration;
@@ -53,10 +54,11 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
 
     public MappedStatement addMappedStatement(String id, SqlSource sqlSource, SqlCommandType sqlCommandType,
-                                              String resultMap, Class<?> resultType) {
+                                              String resultMap, Class<?> resultType, KeyGenerator keyGenerator,
+                                              String keyProperty) {
         id = applyCurrentNamespace(id, false);
-        MappedStatement.Builder builder = new MappedStatement.Builder(configuration,
-                id, sqlCommandType, sqlSource, resultType);
+        MappedStatement.Builder builder = new MappedStatement.Builder(configuration, id, sqlCommandType,
+                sqlSource, resultType).resource(resource).keyGenerator(keyGenerator).keyProperty(keyProperty);
 
         // 结果映射，给 MappedStatement#resultMaps
         setStatementResultMap(resultMap, resultType, builder);
@@ -95,7 +97,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
 
 
-    private String applyCurrentNamespace(String base, boolean isReference) {
+    public String applyCurrentNamespace(String base, boolean isReference) {
         if (base == null) {
             return null;
         }

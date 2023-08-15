@@ -6,6 +6,9 @@ import com.wlx.middleware.mybatis.annotations.Select;
 import com.wlx.middleware.mybatis.annotations.Update;
 import com.wlx.middleware.mybatis.binding.MapperMethod;
 import com.wlx.middleware.mybatis.builder.MapperBuilderAssistant;
+import com.wlx.middleware.mybatis.executor.keygen.Jdbc3KeyGenerator;
+import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
+import com.wlx.middleware.mybatis.executor.keygen.NoKeyGenerator;
 import com.wlx.middleware.mybatis.mapping.SqlCommandType;
 import com.wlx.middleware.mybatis.mapping.SqlSource;
 import com.wlx.middleware.mybatis.scripting.LanguageDriver;
@@ -64,15 +67,19 @@ public class MapperAnnotationBuilder {
         if (sqlSource != null) {
             final String mappedStatementId = type.getName() + "." + method.getName();
             SqlCommandType sqlCommandType = getSqlCommandType(method);
-            boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
 
+            KeyGenerator keyGenerator = configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType)
+                    ? new Jdbc3KeyGenerator() : new NoKeyGenerator();
+            String keyProperty = "id";
+
+            boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
             String resultMapId = null;
             if (isSelect) {
                 resultMapId = parseResultMap(method);
             }
 
             assistant.addMappedStatement(mappedStatementId, sqlSource, sqlCommandType,
-                    resultMapId, getReturnType(method));
+                    resultMapId, getReturnType(method), keyGenerator, keyProperty);
         }
     }
 

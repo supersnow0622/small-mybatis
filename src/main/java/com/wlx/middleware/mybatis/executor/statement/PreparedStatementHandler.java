@@ -1,6 +1,7 @@
 package com.wlx.middleware.mybatis.executor.statement;
 
 import com.wlx.middleware.mybatis.executor.Executor;
+import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.session.Configuration;
@@ -34,9 +35,16 @@ public class PreparedStatementHandler extends BaseStatementHandler {
 
     @Override
     public int update(Statement statement) throws SQLException {
+        // 1.执行insert/delete/update
         PreparedStatement preparedStatement = (PreparedStatement) statement;
         preparedStatement.execute();
-        return preparedStatement.getUpdateCount();
+        int rows = preparedStatement.getUpdateCount();
+
+        // 2.执行selectKey语句
+        Object parameterObject = boundSql.getParameterObject();
+        KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
+        keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
+        return rows;
     }
 
     @Override

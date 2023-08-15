@@ -31,13 +31,31 @@ public class ApiTest {
     }
 
     @Test
+    public void test_insert() {
+        // 1. 获取映射器对象
+        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
+
+        Activity activity = new Activity();
+        activity.setActivityId(10003L);
+        activity.setActivityName("测试活动");
+        activity.setActivityDesc("测试数据插入");
+        activity.setCreator("xiaofuge");
+
+        // 2. 测试验证
+        Integer res = dao.insert(activity);
+        sqlSession.commit();
+
+        logger.info("测试结果：count：{} idx：{}", res, JSON.toJSONString(activity.getId()));
+    }
+
+    @Test
     public void test_insertUserInfo() {
         // 1. 获取映射器对象
         IUserDao userDao = sqlSession.getMapper(IUserDao.class);
 
         // 2. 测试验证
         User user = new User();
-        user.setUserId("10002");
+        user.setUserId("10006");
         user.setUserName("小白");
         user.setUserHead("1_05");
         int row = userDao.insertUserInfo(user);

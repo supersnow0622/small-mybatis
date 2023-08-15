@@ -8,6 +8,11 @@ import java.sql.SQLException;
 public class StringTypeHandler extends BaseTypeHandler<String> {
 
     @Override
+    protected String getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+        return rs.getString(columnIndex);
+    }
+
+    @Override
     protected String getNullableResult(ResultSet rs, String columnName) throws SQLException {
         return rs.getString(columnName);
     }

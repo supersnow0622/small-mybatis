@@ -8,6 +8,15 @@ import java.util.Date;
 
 public class DateTypeHandler extends BaseTypeHandler<Date> {
     @Override
+    protected Date getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+        Timestamp timestamp = rs.getTimestamp(columnIndex);
+        if (timestamp != null) {
+            return new Date(timestamp.getTime());
+        }
+        return null;
+    }
+
+    @Override
     protected Date getNullableResult(ResultSet rs, String columnName) throws SQLException {
         Timestamp timestamp = rs.getTimestamp(columnName);
         if (timestamp != null) {

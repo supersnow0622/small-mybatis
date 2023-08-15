@@ -121,13 +121,36 @@ public class DefaultResultSetHandler implements ResultSetHandler {
         return resultObject;
     }
 
-    private Object createResultObject(ResultSetWrapper rsw, ResultMap resultMap) {
+    private Object createResultObject(ResultSetWrapper rsw, ResultMap resultMap) throws SQLException {
         Class<?> resultType = resultMap.getType();
         MetaClass metaClass = MetaClass.forClass(resultType);
-        if (resultType.isInterface() || metaClass.hasDefaultConstructor()) {
+        if (typeHandlerRegistry.hasTypeHandler(resultType)) {
+            return createPrimitiveResultObject(rsw, resultMap, null);
+        } else if (resultType.isInterface() || metaClass.hasDefaultConstructor()) {
             return objectFactory.create(resultType);
         }
         throw new RuntimeException("Do not know how to create an instance of " + resultType);
+    }
+
+    private Object createPrimitiveResultObject(ResultSetWrapper rsw, ResultMap resultMap, String columnPrefix) throws SQLException {
+        final Class<?> resultType = resultMap.getType();
+        final String columnName;
+        if (!resultMap.getResultMappings().isEmpty()) {
+            final List<ResultMapping> resultMappingList = resultMap.getResultMappings();
+            final ResultMapping mapping = resultMappingList.get(0);
+            columnName = prependPrefix(mapping.getColumn(), columnPrefix);
+        } else {
+            columnName = rsw.getColumnNames().get(0);
+        }
+        final TypeHandler<?> typeHandler = rsw.getTypeHandler(resultType, columnName);
+        return typeHandler.getResult(rsw.getResultSet(), columnName);
+    }
+
+    private String prependPrefix(String columnName, String prefix) {
+        if (columnName == null || columnName.length() == 0 || prefix == null || prefix.length() == 0) {
+            return columnName;
+        }
+        return prefix + columnName;
     }
 
     /**

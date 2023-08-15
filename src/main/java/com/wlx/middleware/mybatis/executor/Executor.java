@@ -17,6 +17,8 @@ public interface Executor {
 
     <E> List<E> query(MappedStatement statement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql);
 
+    <E> List<E> query(MappedStatement statement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler);
+
     void rollback(boolean required) throws SQLException;
 
     void close(boolean required);

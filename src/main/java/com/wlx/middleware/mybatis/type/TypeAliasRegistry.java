@@ -22,6 +22,7 @@ public class TypeAliasRegistry {
         registerAlias("double", Double.class);
         registerAlias("float", Float.class);
         registerAlias("boolean", Boolean.class);
+        registerAlias("byte", Byte.class);
     }
 
     public void registerAlias(String alias, Class<?> clazz) {
