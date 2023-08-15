@@ -14,6 +14,7 @@ import com.wlx.middleware.mybatis.executor.statement.StatementHandler;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.Environment;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
+import com.wlx.middleware.mybatis.mapping.ResultMap;
 import com.wlx.middleware.mybatis.reflection.MetaObject;
 import com.wlx.middleware.mybatis.reflection.factory.DefaultObjectFactory;
 import com.wlx.middleware.mybatis.reflection.factory.ObjectFactory;
@@ -21,7 +22,6 @@ import com.wlx.middleware.mybatis.reflection.wrapper.DefaultObjectWrapperFactory
 import com.wlx.middleware.mybatis.reflection.wrapper.ObjectWrapperFactory;
 import com.wlx.middleware.mybatis.scripting.LanguageDriver;
 import com.wlx.middleware.mybatis.scripting.LanguageDriverRegistry;
-import com.wlx.middleware.mybatis.scripting.defaults.DefaultParameterHandler;
 import com.wlx.middleware.mybatis.scripting.xmltags.XMLLanguageDriver;
 import com.wlx.middleware.mybatis.transaction.Transaction;
 import com.wlx.middleware.mybatis.transaction.jdbc.JdbcTransactionFactory;
@@ -44,7 +44,7 @@ public class Configuration {
     private Map<String, MappedStatement> mappedStatements = new HashMap<>();
 
     // 映射注册机
-    private MapperRegistry mapperRegistry = new MapperRegistry();
+    private MapperRegistry mapperRegistry = new MapperRegistry(this);
 
     // 类型别名注册机
     private TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
@@ -60,6 +60,8 @@ public class Configuration {
     protected final Set<String> loadedResource = new HashSet<>();
 
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
+
+    protected final Map<String, ResultMap> resultMaps = new HashMap<>();
 
     public Configuration() {
         typeAliasRegistry.registerAlias("DRUID", DruidDataSourceFactory.class);
@@ -149,4 +151,13 @@ public class Configuration {
     public ObjectFactory getObjectFactory() {
         return objectFactory;
     }
+
+    public ResultMap getResultMap(String id) {
+        return resultMaps.get(id);
+    }
+
+    public void addResultMap(ResultMap resultMap) {
+        resultMaps.put(resultMap.getId(), resultMap);
+    }
+
 }

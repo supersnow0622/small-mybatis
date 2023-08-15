@@ -17,6 +17,7 @@
     </environments>
 
     <mappers>
-        <mapper resource="mapper/User_Mapper.xml"/>
+<!--        <mapper resource="mapper/User_Mapper.xml"/>-->
+        <mapper class="com.wlx.middleware.mybatis.test.dao.IUserDao"/>
     </mappers>
 </configuration>

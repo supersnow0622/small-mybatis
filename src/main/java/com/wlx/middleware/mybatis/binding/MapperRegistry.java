@@ -1,6 +1,8 @@
 package com.wlx.middleware.mybatis.binding;
 
 import cn.hutool.core.lang.ClassScanner;
+import com.wlx.middleware.mybatis.builder.annotation.MapperAnnotationBuilder;
+import com.wlx.middleware.mybatis.session.Configuration;
 import com.wlx.middleware.mybatis.session.SqlSession;
 
 import java.util.HashMap;
@@ -11,6 +13,12 @@ import java.util.Set;
  * 映射器注册机，管理所有映射器代理类的工厂
  */
 public class MapperRegistry {
+
+    private Configuration configuration;
+
+    public MapperRegistry(Configuration configuration) {
+        this.configuration = configuration;
+    }
 
     private Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
@@ -30,6 +38,9 @@ public class MapperRegistry {
             throw new RuntimeException("Type " + type + " is already known to the MapperRegistry.");
         }
         knownMappers.put(type, new MapperProxyFactory<T>(type));
+
+        MapperAnnotationBuilder builder = new MapperAnnotationBuilder(configuration, type);
+        builder.parse();
     }
 
     public <T> boolean hasMapper(Class<T> type) {

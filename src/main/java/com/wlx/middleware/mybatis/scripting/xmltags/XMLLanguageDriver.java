@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.mapping.SqlSource;
 import com.wlx.middleware.mybatis.scripting.LanguageDriver;
 import com.wlx.middleware.mybatis.scripting.defaults.DefaultParameterHandler;
+import com.wlx.middleware.mybatis.scripting.defaults.RawSqlSource;
 import com.wlx.middleware.mybatis.session.Configuration;
 import org.dom4j.Element;
 
@@ -18,6 +19,11 @@ public class XMLLanguageDriver implements LanguageDriver {
     public SqlSource createSqlSource(Configuration configuration, Element script, Class<?> parameterType) {
         XMLScriptBuilder xmlScriptBuilder = new XMLScriptBuilder(configuration, script, parameterType);
         return xmlScriptBuilder.parseScriptNode();
+    }
+
+    @Override
+    public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
+        return new RawSqlSource(configuration, script, parameterType);
     }
 
     @Override
