@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.executor.result.DefaultResultHandler;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.mapping.ResultMap;
+import com.wlx.middleware.mybatis.mapping.ResultMapping;
 import com.wlx.middleware.mybatis.reflection.MetaClass;
 import com.wlx.middleware.mybatis.reflection.MetaObject;
 import com.wlx.middleware.mybatis.reflection.factory.ObjectFactory;
@@ -15,14 +16,16 @@ import com.wlx.middleware.mybatis.session.RowBounds;
 import com.wlx.middleware.mybatis.type.TypeHandler;
 import com.wlx.middleware.mybatis.type.TypeHandlerRegistry;
 
-import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class DefaultResultSetHandler implements ResultSetHandler {
 
+    private static final Object NO_VALUE = new Object();
     private final BoundSql boundSql;
     private final RowBounds rowBounds;
     private final MappedStatement mappedStatement;
@@ -109,7 +112,10 @@ public class DefaultResultSetHandler implements ResultSetHandler {
         // 设置对象属性值
         if (resultObject != null && !typeHandlerRegistry.hasTypeHandler(resultMap.getType())) {
             final MetaObject metaObject = configuration.newMetaObject(resultObject);
+            // 自动映射：把每列的值都赋到对应的字段上
             applyAutomaticMappings(rsw, resultMap, metaObject, null);
+            // Map映射：根据映射类型赋值到字段
+            applyPropertyMappings(rsw, resultMap, metaObject, null);
         }
 
         return resultObject;
@@ -161,6 +167,24 @@ public class DefaultResultSetHandler implements ResultSetHandler {
             }
         }
         return foundValue;
+    }
+
+    private boolean applyPropertyMappings(ResultSetWrapper rsw, ResultMap resultMap, MetaObject metaObject, String columnPrefix) throws SQLException {
+        boolean foundValues = false;
+        List<String> mappedColumnNames = rsw.getMappedColumnNames(resultMap, columnPrefix);
+        List<ResultMapping> resultMappings = resultMap.getResultMappings();
+        for (ResultMapping resultMapping : resultMappings) {
+            if (mappedColumnNames.contains(resultMapping.getColumn().toUpperCase(Locale.ENGLISH))) {
+                TypeHandler<?> typeHandler = resultMapping.getTypeHandler();
+                Object value = typeHandler.getResult(rsw.getResultSet(), resultMapping.getColumn());
+                String property = resultMapping.getProperty();
+                if (value != NO_VALUE && property != null && value != null) {
+                    metaObject.setValue(property, value);
+                    foundValues = true;
+                }
+            }
+        }
+        return foundValues;
     }
 
 }

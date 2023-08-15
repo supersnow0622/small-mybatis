@@ -1,7 +1,9 @@
 package com.wlx.middleware.mybatis.builder;
 
 import com.wlx.middleware.mybatis.mapping.*;
+import com.wlx.middleware.mybatis.reflection.MetaClass;
 import com.wlx.middleware.mybatis.session.Configuration;
+import com.wlx.middleware.mybatis.type.TypeHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,31 @@ public class MapperBuilderAssistant extends BaseBuilder {
     public MapperBuilderAssistant(Configuration configuration, String resource) {
         super(configuration);
         this.resource = resource;
+    }
+
+    public ResultMapping buildResultMapping(Class<?> resultType,
+                                            String property,
+                                            String column,
+                                            List<ResultFlag> flags) {
+
+        Class<?> javaTypeClass = resolveResultJavaType(resultType, property, null);
+        TypeHandler<?> typeHandler = typeHandlerRegistry.getMappingTypeHandler(javaTypeClass);
+
+        ResultMapping.Builder builder = new ResultMapping.Builder(configuration, property, column, javaTypeClass)
+                .typeHandler(typeHandler).flags(flags);
+
+        return builder.build();
+    }
+
+    private Class<?> resolveResultJavaType(Class<?> resultType, String property, Class<?> javaType) {
+        if (javaType == null && property != null) {
+            MetaClass metaClass = MetaClass.forClass(resultType);
+            javaType = metaClass.getSetterType(property);
+        }
+        if (javaType == null) {
+            javaType = Object.class;
+        }
+        return javaType;
     }
 
     public String getCurrentNamespace() {
@@ -40,6 +67,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
 
     public ResultMap addResultMap(String resultMapId, Class<?> returnType, List<ResultMapping> resultMappings) {
+        resultMapId = applyCurrentNamespace(resultMapId, false);
         ResultMap.Builder inlineResultMapBuilder = new ResultMap.Builder(configuration, resultMapId,
                 returnType, resultMappings);
         ResultMap resultMap = inlineResultMapBuilder.build();

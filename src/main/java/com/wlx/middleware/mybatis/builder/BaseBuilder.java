@@ -26,6 +26,17 @@ public abstract class BaseBuilder {
         return typeAliasRegistry;
     }
 
+    protected Class<?> resolveClass(String type) {
+        if (type == null) {
+            return null;
+        }
+        try {
+            return resolveAlias(type);
+        } catch (Exception e) {
+            throw new RuntimeException("Error resolving class. Cause: " + e, e);
+        }
+    }
+
     public Class<?> resolveAlias(String alias) {
         return typeAliasRegistry.resolveAlias(alias);
     }
