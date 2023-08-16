@@ -11,10 +11,14 @@
         <result column="update_time" property="updateTime"/>
     </resultMap>
 
-    <select id="queryActivityById" parameterType="java.lang.Long" resultMap="activityMap">
+    <select id="queryActivityById" parameterType="com.wlx.middleware.mybatis.test.po.Activity" resultMap="activityMap">
         SELECT activity_id, activity_name, activity_desc, create_time, update_time
         FROM activity
-        WHERE activity_id = #{activityId}
+        <trim prefix="where" prefixOverrides="AND | OR" suffixOverrides="and">
+            <if test="null != activityId">
+                activity_id = #{activityId}
+            </if>
+        </trim>
     </select>
 
     <insert id="insert" parameterType="com.wlx.middleware.mybatis.test.po.Activity">
