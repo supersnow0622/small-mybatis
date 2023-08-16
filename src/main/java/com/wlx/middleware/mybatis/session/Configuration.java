@@ -16,6 +16,8 @@ import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.Environment;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.mapping.ResultMap;
+import com.wlx.middleware.mybatis.plugin.Interceptor;
+import com.wlx.middleware.mybatis.plugin.InterceptorChain;
 import com.wlx.middleware.mybatis.reflection.MetaObject;
 import com.wlx.middleware.mybatis.reflection.factory.DefaultObjectFactory;
 import com.wlx.middleware.mybatis.reflection.factory.ObjectFactory;
@@ -68,6 +70,8 @@ public class Configuration {
 
     protected final Map<String, KeyGenerator> keyGenerators = new HashMap<>();
 
+    protected final InterceptorChain interceptorChain = new InterceptorChain();
+
     public Configuration() {
         typeAliasRegistry.registerAlias("DRUID", DruidDataSourceFactory.class);
         typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
@@ -78,23 +82,31 @@ public class Configuration {
     }
 
     public Executor newExecutor(Transaction transaction) {
-        return new SimpleExecutor(this, transaction);
+        Executor executor = new SimpleExecutor(this, transaction);
+        executor = (Executor) interceptorChain.pluginAll(executor);
+        return executor;
     }
 
     public StatementHandler newStatementHandler(MappedStatement mappedStatement, ResultHandler resultHandler, RowBounds rowBounds,
                                                 BoundSql boundSql, Executor executor, Configuration configuration,
                                                 Object parameterObject) {
-        return new PreparedStatementHandler(mappedStatement, resultHandler, rowBounds, boundSql, executor, configuration, parameterObject);
+        StatementHandler statementHandler = new PreparedStatementHandler(mappedStatement, resultHandler,
+                rowBounds, boundSql, executor, configuration, parameterObject);
+        statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
+        return statementHandler;
     }
 
     public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
         ParameterHandler parameterHandler = mappedStatement.getLanguageDriver().createParameterHandler(mappedStatement, parameterObject, boundSql);
+        parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
         return parameterHandler;
     }
 
     public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement mappedStatement, RowBounds rowBounds,
                                                 ResultHandler resultHandler, BoundSql boundSql) {
-        return new DefaultResultSetHandler(executor, mappedStatement, resultHandler, rowBounds, boundSql);
+        ResultSetHandler resultSetHandler = new DefaultResultSetHandler(executor, mappedStatement, resultHandler, rowBounds, boundSql);
+        resultSetHandler = (ResultSetHandler) interceptorChain.pluginAll(resultSetHandler);
+        return resultSetHandler;
     }
 
     public MappedStatement getMappedStatement(String name) {
@@ -179,5 +191,9 @@ public class Configuration {
 
     public boolean isUseGeneratedKeys() {
         return useGeneratedKeys;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        interceptorChain.addInterceptor(interceptor);
     }
 }

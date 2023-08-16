@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.executor.statement;
 
+import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.session.ResultHandler;
 
 import java.sql.Connection;
@@ -19,4 +20,6 @@ public interface StatementHandler {
     int update(Statement statement) throws SQLException;
 
     void parameterize(Statement statement) throws SQLException;
+
+    BoundSql getBoundSql();
 }

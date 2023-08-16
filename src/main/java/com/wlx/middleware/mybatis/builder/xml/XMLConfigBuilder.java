@@ -4,6 +4,7 @@ import com.wlx.middleware.mybatis.builder.BaseBuilder;
 import com.wlx.middleware.mybatis.datasource.DataSourceFactory;
 import com.wlx.middleware.mybatis.io.Resources;
 import com.wlx.middleware.mybatis.mapping.Environment;
+import com.wlx.middleware.mybatis.plugin.Interceptor;
 import com.wlx.middleware.mybatis.session.Configuration;
 import com.wlx.middleware.mybatis.transaction.TransactionFactory;
 import org.dom4j.Document;
@@ -34,12 +35,35 @@ public class XMLConfigBuilder extends BaseBuilder {
 
     public Configuration parse() {
         try {
+            // 添加插件
+            pluginElement(root.element("plugins"));
+            // 环境
             environmentsElement(root.element("environments"));
+            // 解析映射器
             mapperElement(root.element("mappers"));
         } catch (Exception e) {
             throw new RuntimeException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
         }
         return configuration;
+    }
+
+    private void pluginElement(Element plugins) throws Exception {
+        if (plugins == null)
+            return;
+        List<Element> elements = plugins.elements();
+        for (Element element : elements) {
+            String interceptor = element.attributeValue("interceptor");
+            List<Element> propertyElementList = element.elements("property");
+
+            Properties properties = new Properties();
+            for (Element property : propertyElementList) {
+                properties.setProperty(property.attributeValue("name"), property.attributeValue("value"));
+            }
+
+            Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+            interceptorInstance.setProperties(properties);
+            configuration.addInterceptor(interceptorInstance);
+        }
     }
 
     private void environmentsElement(Element environments) throws Exception {
