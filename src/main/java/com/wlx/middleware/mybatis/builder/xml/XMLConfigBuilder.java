@@ -20,6 +20,9 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * XML配置构建器
+ */
 public class XMLConfigBuilder extends BaseBuilder {
     private Element root;
 
@@ -58,6 +61,7 @@ public class XMLConfigBuilder extends BaseBuilder {
         for (Element element : elements) {
             properties.setProperty(element.attributeValue("name"), element.attributeValue("value"));
         }
+        configuration.setCacheEnabled(booleanValueOf(properties.getProperty("cacheEnabled"), true));
         configuration.setLocalCacheScope(LocalCacheScope.valueOf(properties.getProperty("localCacheScope")));
     }
 

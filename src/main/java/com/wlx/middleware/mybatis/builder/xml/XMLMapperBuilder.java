@@ -2,6 +2,7 @@ package com.wlx.middleware.mybatis.builder.xml;
 
 import com.wlx.middleware.mybatis.builder.BaseBuilder;
 import com.wlx.middleware.mybatis.builder.MapperBuilderAssistant;
+import com.wlx.middleware.mybatis.cache.Cache;
 import com.wlx.middleware.mybatis.io.Resources;
 import com.wlx.middleware.mybatis.mapping.ResultFlag;
 import com.wlx.middleware.mybatis.mapping.ResultMap;
@@ -17,6 +18,7 @@ import org.dom4j.io.SAXReader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * XML映射构建器
@@ -58,14 +60,42 @@ public class XMLMapperBuilder extends BaseBuilder {
         }
         builderAssistant.setCurrentNamespace(currentNamespace);
 
-        // 2.解析resultMap
+        // 2.配置cache
+        cacheElement(element.element("cache"));
+
+        // 3.解析resultMap
         resultMapElements(element.elements("resultMap"));
 
-        // 3.配置select|insert|update|delete
+        // 4.配置select|insert|update|delete
         buildStatementFromContext(element.elements("select"),
                 element.elements("insert"),
                 element.elements("update"),
                 element.elements("delete"));
+    }
+
+    /**
+     * <cache eviction="FIFO" flushInterval="600000" size="512" readOnly="true"/>
+     */
+    private void cacheElement(Element context) {
+        if (context == null)
+            return;
+        String type = context.attributeValue("type", "PERPETUAL");
+        Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+        String eviction = context.attributeValue("eviction", "FIFO");
+        Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+        Long flushInterval = Long.valueOf(context.attributeValue("flushInterval"));
+        Integer size = Integer.valueOf(context.attributeValue("size"));
+        boolean readWrite = !Boolean.parseBoolean(context.attributeValue("readOnly", "false"));
+        boolean blocking = !Boolean.parseBoolean(context.attributeValue("blocking", "false"));
+
+        // 解析额外属性信息；<property name="cacheFile" value="/tmp/xxx-cache.tmp"/>
+        List<Element> elements = context.elements();
+        Properties props = new Properties();
+        for (Element element : elements) {
+            props.setProperty(element.attributeValue("name"), element.attributeValue("value"));
+        }
+
+        builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
 
     private void resultMapElements(List<Element> resultMap) {

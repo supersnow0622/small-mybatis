@@ -79,7 +79,7 @@ public class MapperAnnotationBuilder {
             }
 
             assistant.addMappedStatement(mappedStatementId, sqlSource, sqlCommandType,
-                    resultMapId, getReturnType(method), keyGenerator, keyProperty);
+                    resultMapId, getReturnType(method), keyGenerator, keyProperty, false, false);
         }
     }
 

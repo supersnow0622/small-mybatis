@@ -1,5 +1,8 @@
 package com.wlx.middleware.mybatis.builder;
 
+import com.wlx.middleware.mybatis.cache.Cache;
+import com.wlx.middleware.mybatis.cache.decorators.FifoCache;
+import com.wlx.middleware.mybatis.cache.impl.PerpetualCache;
 import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
 import com.wlx.middleware.mybatis.mapping.*;
 import com.wlx.middleware.mybatis.reflection.MetaClass;
@@ -8,12 +11,15 @@ import com.wlx.middleware.mybatis.type.TypeHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class MapperBuilderAssistant extends BaseBuilder {
 
     private String currentNamespace;
 
     private String resource;
+
+    private Cache currentCache;
 
     public MapperBuilderAssistant(Configuration configuration, String resource) {
         super(configuration);
@@ -55,13 +61,15 @@ public class MapperBuilderAssistant extends BaseBuilder {
 
     public MappedStatement addMappedStatement(String id, SqlSource sqlSource, SqlCommandType sqlCommandType,
                                               String resultMap, Class<?> resultType, KeyGenerator keyGenerator,
-                                              String keyProperty) {
+                                              String keyProperty, boolean flushCache, boolean useCache) {
         id = applyCurrentNamespace(id, false);
+
         MappedStatement.Builder builder = new MappedStatement.Builder(configuration, id, sqlCommandType,
                 sqlSource, resultType).resource(resource).keyGenerator(keyGenerator).keyProperty(keyProperty);
 
         // 结果映射，给 MappedStatement#resultMaps
         setStatementResultMap(resultMap, resultType, builder);
+        setStatementCache(flushCache, useCache, currentCache, builder);
 
         MappedStatement mappedStatement = builder.build();
         configuration.addMappedStatement(mappedStatement);
@@ -112,5 +120,37 @@ public class MapperBuilderAssistant extends BaseBuilder {
             }
         }
         return currentNamespace + "." + base;
+    }
+
+    // 构建二级缓存，并保存在configuration中，以mapper中的namespace作为key
+    public Cache useNewCache(Class<? extends Cache> typeClass,
+                             Class<? extends Cache> evictionClass,
+                             Long flushInterval,
+                             Integer size,
+                             boolean readWrite,
+                             boolean blocking,
+                             Properties props) {
+        typeClass = typeClass == null ? PerpetualCache.class : typeClass;
+        evictionClass = evictionClass == null ? FifoCache.class : evictionClass;
+
+        Cache cache = new CacheBuilder(currentNamespace)
+                .implementation(typeClass)
+                .addDecorator(evictionClass)
+                .clearInterval(flushInterval)
+                .size(size)
+                .readWrite(readWrite)
+                .blocking(blocking)
+                .properties(props)
+                .build();
+
+        configuration.addCache(cache);
+        currentCache = cache;
+        return cache;
+    }
+
+    private void setStatementCache(boolean flushCache, boolean useCache, Cache currentCache, MappedStatement.Builder builder) {
+        builder.flushCacheRequired(flushCache);
+        builder.useCache(useCache);
+        builder.cache(currentCache);
     }
 }

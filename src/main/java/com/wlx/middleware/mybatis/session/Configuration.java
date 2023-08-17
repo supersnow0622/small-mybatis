@@ -1,9 +1,13 @@
 package com.wlx.middleware.mybatis.session;
 
 import com.wlx.middleware.mybatis.binding.MapperRegistry;
+import com.wlx.middleware.mybatis.cache.Cache;
+import com.wlx.middleware.mybatis.cache.decorators.FifoCache;
+import com.wlx.middleware.mybatis.cache.impl.PerpetualCache;
 import com.wlx.middleware.mybatis.datasource.druid.DruidDataSourceFactory;
 import com.wlx.middleware.mybatis.datasource.pooled.PooledDataSourceFactory;
 import com.wlx.middleware.mybatis.datasource.unpooled.UnpooledDataSourceFactory;
+import com.wlx.middleware.mybatis.executor.CachingExecutor;
 import com.wlx.middleware.mybatis.executor.Executor;
 import com.wlx.middleware.mybatis.executor.SimpleExecutor;
 import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
@@ -44,11 +48,15 @@ public class Configuration {
     protected Environment environment;
 
     protected boolean useGeneratedKeys = false;
+    // 默认启用缓存，cacheEnabled = true/false
+    protected boolean cacheEnabled = true;
     // 缓存机制，默认不配置的情况是 SESSION
     protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
 
     // 映射的语句，key为namespace+id
     private Map<String, MappedStatement> mappedStatements = new HashMap<>();
+
+    private Map<String, Cache> caches = new HashMap<>();
 
     // 映射注册机
     private MapperRegistry mapperRegistry = new MapperRegistry(this);
@@ -80,11 +88,18 @@ public class Configuration {
         typeAliasRegistry.registerAlias("POOLED", PooledDataSourceFactory.class);
         typeAliasRegistry.registerAlias("UNPOOLED", UnpooledDataSourceFactory.class);
 
+        typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
+        typeAliasRegistry.registerAlias("FIFO", FifoCache.class);
+
         languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
     }
 
     public Executor newExecutor(Transaction transaction) {
         Executor executor = new SimpleExecutor(this, transaction);
+        // 配置开启缓存，创建 CachingExecutor(默认就是有缓存)装饰者模式
+        if (cacheEnabled) {
+            executor = new CachingExecutor(executor);
+        }
         executor = (Executor) interceptorChain.pluginAll(executor);
         return executor;
     }
@@ -205,5 +220,13 @@ public class Configuration {
 
     public void setLocalCacheScope(LocalCacheScope localCacheScope) {
         this.localCacheScope = localCacheScope;
+    }
+
+    public void setCacheEnabled(boolean cacheEnabled) {
+        this.cacheEnabled = cacheEnabled;
+    }
+
+    public void addCache(Cache cache) {
+        caches.put(cache.getId(), cache);
     }
 }

@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.builder;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.wlx.middleware.mybatis.session.Configuration;
 import com.wlx.middleware.mybatis.type.TypeAliasRegistry;
 import com.wlx.middleware.mybatis.type.TypeHandlerRegistry;
@@ -39,5 +40,9 @@ public abstract class BaseBuilder {
 
     public Class<?> resolveAlias(String alias) {
         return typeAliasRegistry.resolveAlias(alias);
+    }
+
+    protected Boolean booleanValueOf(String cacheEnabled, Boolean defaultValue) {
+        return cacheEnabled == null ? defaultValue : Boolean.valueOf(cacheEnabled);
     }
 }

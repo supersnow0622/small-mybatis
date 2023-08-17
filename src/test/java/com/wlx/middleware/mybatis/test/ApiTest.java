@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 
 public class ApiTest {
@@ -123,20 +124,30 @@ public class ApiTest {
     }
 
     @Test
-    public void test_queryActivityById(){
-        // 1. 获取映射器对象
-        IActivityDao dao = sqlSession.getMapper(IActivityDao.class);
-        // 2. 测试验证
+    public void test_queryActivityById() throws IOException {
+        // 1. 从SqlSessionFactory中获取SqlSession
+        Reader reader = Resources.getResourceAsReader("mybatis-config-datasource.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
+
+        // 2. 请求对象
         Activity req = new Activity();
         req.setActivityId(100001L);
-        Activity res = dao.queryActivityById(req);
-        logger.info("测试结果：{}", JSON.toJSONString(res));
 
-        IActivityDao dao1 = sqlSession.getMapper(IActivityDao.class);
-        Activity req1 = new Activity();
-        req1.setActivityId(100001L);
-        Activity res1 = dao1.queryActivityById(req1);
-        logger.info("测试结果：{}", JSON.toJSONString(res1));
+        // 3. 第一组：SqlSession
+        // 3.1 开启 Session
+        SqlSession sqlSession01 = sqlSessionFactory.openSession();
+        // 3.2 获取映射器对象
+        IActivityDao dao01 = sqlSession01.getMapper(IActivityDao.class);
+        logger.info("测试结果01：{}", JSON.toJSONString(dao01.queryActivityById(req)));
+        sqlSession01.close();
+
+        // 4. 第一组：SqlSession
+        // 4.1 开启 Session
+        SqlSession sqlSession02 = sqlSessionFactory.openSession();
+        // 4.2 获取映射器对象
+        IActivityDao dao02 = sqlSession02.getMapper(IActivityDao.class);
+        logger.info("测试结果02：{}", JSON.toJSONString(dao02.queryActivityById(req)));
+        sqlSession02.close();
     }
 
 }

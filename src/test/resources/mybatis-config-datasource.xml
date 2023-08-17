@@ -3,6 +3,12 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 
 <configuration>
+    <settings>
+        <!-- 全局缓存：true/false -->
+        <setting name="cacheEnabled" value="true"/>
+        <!--缓存级别：SESSION/STATEMENT-->
+        <setting name="localCacheScope" value="SESSION"/>
+    </settings>
 
     <plugins>
         <plugin interceptor="com.wlx.middleware.mybatis.test.plugin.TestPlugin">

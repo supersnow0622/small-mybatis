@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.builder.xml;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.wlx.middleware.mybatis.builder.BaseBuilder;
 import com.wlx.middleware.mybatis.builder.MapperBuilderAssistant;
 import com.wlx.middleware.mybatis.executor.keygen.Jdbc3KeyGenerator;
@@ -44,6 +45,11 @@ public class XMLStatementBuilder extends BaseBuilder {
         String name = element.getName();
         SqlCommandType sqlCommandType = SqlCommandType.valueOf(name.toUpperCase());
 
+        boolean isSelect = SqlCommandType.SELECT.equals(sqlCommandType);
+        // 非查询语句需要刷新缓存，查询语句使用缓存
+        boolean flushCache = Boolean.parseBoolean(element.attributeValue("flushCache", String.valueOf(!isSelect)));
+        boolean useCache = Boolean.parseBoolean(element.attributeValue("useCache", String.valueOf(isSelect)));
+
         LanguageDriverRegistry languageRegistry = configuration.getLanguageRegistry();
         LanguageDriver driver = languageRegistry.getDriver(XMLLanguageDriver.class);
 
@@ -62,7 +68,8 @@ public class XMLStatementBuilder extends BaseBuilder {
 
         SqlSource sqlSource = driver.createSqlSource(configuration, element, parameterTypeClass);
 
-        builderAssistant.addMappedStatement(id, sqlSource, sqlCommandType, resultMap, resultTypeClass, keyGenerator, keyProperty);
+        builderAssistant.addMappedStatement(id, sqlSource, sqlCommandType, resultMap, resultTypeClass,
+                keyGenerator, keyProperty, flushCache, useCache);
     }
 
     private void processSelectKeyNodes(String id, Class<?> parameterTypeClass, LanguageDriver driver) {
@@ -85,7 +92,7 @@ public class XMLStatementBuilder extends BaseBuilder {
         SqlCommandType sqlCommandType = SqlCommandType.SELECT;
 
         builderAssistant.addMappedStatement(id, sqlSource, sqlCommandType, null, resultTypeClass,
-                keyGenerator, keyProperty);
+                keyGenerator, keyProperty, false, false);
         id = builderAssistant.applyCurrentNamespace(id, false);
 
         MappedStatement keyStatement = configuration.getMappedStatement(id);

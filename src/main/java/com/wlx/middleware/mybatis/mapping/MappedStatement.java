@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.mapping;
 
+import com.wlx.middleware.mybatis.cache.Cache;
 import com.wlx.middleware.mybatis.executor.keygen.Jdbc3KeyGenerator;
 import com.wlx.middleware.mybatis.executor.keygen.KeyGenerator;
 import com.wlx.middleware.mybatis.executor.keygen.NoKeyGenerator;
@@ -22,8 +23,9 @@ public class MappedStatement {
     private KeyGenerator keyGenerator;
     private String[] keyProperties;
     private String[] keyColumns;
-
     private boolean flushCacheRequired;
+    private Cache cache;
+    private boolean useCache;
 
     public MappedStatement() {
     }
@@ -72,6 +74,21 @@ public class MappedStatement {
 
         public Builder keyProperty(String keyProperty) {
             mappedStatement.keyProperties = delimitedStringToArray(keyProperty);
+            return this;
+        }
+
+        public Builder cache(Cache cache) {
+            mappedStatement.cache = cache;
+            return this;
+        }
+
+        public Builder flushCacheRequired(boolean flushCacheRequired) {
+            mappedStatement.flushCacheRequired = flushCacheRequired;
+            return this;
+        }
+
+        public Builder useCache(boolean useCache) {
+            mappedStatement.useCache = useCache;
             return this;
         }
     }
@@ -126,5 +143,13 @@ public class MappedStatement {
 
     public String[] getKeyColumns() {
         return keyColumns;
+    }
+
+    public Cache getCache() {
+        return cache;
+    }
+
+    public boolean isUseCache() {
+        return useCache;
     }
 }
