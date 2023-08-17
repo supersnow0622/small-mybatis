@@ -6,6 +6,7 @@ import com.wlx.middleware.mybatis.io.Resources;
 import com.wlx.middleware.mybatis.mapping.Environment;
 import com.wlx.middleware.mybatis.plugin.Interceptor;
 import com.wlx.middleware.mybatis.session.Configuration;
+import com.wlx.middleware.mybatis.session.LocalCacheScope;
 import com.wlx.middleware.mybatis.transaction.TransactionFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -37,6 +38,8 @@ public class XMLConfigBuilder extends BaseBuilder {
         try {
             // 添加插件
             pluginElement(root.element("plugins"));
+            // 设置
+            settingsElement(root.element("settings"));
             // 环境
             environmentsElement(root.element("environments"));
             // 解析映射器
@@ -45,6 +48,17 @@ public class XMLConfigBuilder extends BaseBuilder {
             throw new RuntimeException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
         }
         return configuration;
+    }
+
+    private void settingsElement(Element context) {
+        if (context == null)
+            return;
+        List<Element> elements = context.elements();
+        Properties properties = new Properties();
+        for (Element element : elements) {
+            properties.setProperty(element.attributeValue("name"), element.attributeValue("value"));
+        }
+        configuration.setLocalCacheScope(LocalCacheScope.valueOf(properties.getProperty("localCacheScope")));
     }
 
     private void pluginElement(Element plugins) throws Exception {

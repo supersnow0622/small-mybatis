@@ -1,5 +1,6 @@
 package com.wlx.middleware.mybatis.executor;
 
+import com.wlx.middleware.mybatis.cache.CacheKey;
 import com.wlx.middleware.mybatis.mapping.BoundSql;
 import com.wlx.middleware.mybatis.mapping.MappedStatement;
 import com.wlx.middleware.mybatis.session.ResultHandler;
@@ -15,7 +16,7 @@ public interface Executor {
 
     int update(MappedStatement mappedStatement, Object parameter) throws SQLException;
 
-    <E> List<E> query(MappedStatement statement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql);
+    <E> List<E> query(MappedStatement statement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql, CacheKey cacheKey);
 
     <E> List<E> query(MappedStatement statement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler);
 
@@ -26,5 +27,9 @@ public interface Executor {
     void commit(boolean required) throws SQLException;
 
     Transaction getTransaction();
+
+    void clearLocalCache();
+
+    CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql);
 
 }

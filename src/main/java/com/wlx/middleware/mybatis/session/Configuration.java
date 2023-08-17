@@ -44,6 +44,8 @@ public class Configuration {
     protected Environment environment;
 
     protected boolean useGeneratedKeys = false;
+    // 缓存机制，默认不配置的情况是 SESSION
+    protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
 
     // 映射的语句，key为namespace+id
     private Map<String, MappedStatement> mappedStatements = new HashMap<>();
@@ -195,5 +197,13 @@ public class Configuration {
 
     public void addInterceptor(Interceptor interceptor) {
         interceptorChain.addInterceptor(interceptor);
+    }
+
+    public LocalCacheScope getLocalCacheScope() {
+        return localCacheScope;
+    }
+
+    public void setLocalCacheScope(LocalCacheScope localCacheScope) {
+        this.localCacheScope = localCacheScope;
     }
 }

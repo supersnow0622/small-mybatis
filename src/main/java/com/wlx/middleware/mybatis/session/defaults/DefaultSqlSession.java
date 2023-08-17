@@ -41,8 +41,7 @@ public class DefaultSqlSession implements SqlSession {
     public <E> List<E> selectList(String statement, Object parameter) {
         try {
             MappedStatement mappedStatement = configuration.getMappedStatement(statement);
-            return executor.query(mappedStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER,
-                    mappedStatement.getSqlSource().getBoundSql(parameter));
+            return executor.query(mappedStatement, parameter, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER);
         } catch (Exception e) {
             throw new RuntimeException("Error querying database.  Cause: " + e);
         }

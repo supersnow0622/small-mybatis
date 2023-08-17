@@ -23,7 +23,13 @@ public class MappedStatement {
     private String[] keyProperties;
     private String[] keyColumns;
 
+    private boolean flushCacheRequired;
+
     public MappedStatement() {
+    }
+
+    public boolean isFlushCacheRequired() {
+        return flushCacheRequired;
     }
 
     public static class Builder {

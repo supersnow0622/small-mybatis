@@ -131,6 +131,12 @@ public class ApiTest {
         req.setActivityId(100001L);
         Activity res = dao.queryActivityById(req);
         logger.info("测试结果：{}", JSON.toJSONString(res));
+
+        IActivityDao dao1 = sqlSession.getMapper(IActivityDao.class);
+        Activity req1 = new Activity();
+        req1.setActivityId(100001L);
+        Activity res1 = dao1.queryActivityById(req1);
+        logger.info("测试结果：{}", JSON.toJSONString(res1));
     }
 
 }
